@@ -64,7 +64,11 @@ button:active {
     transform: scale(.9);
 }
 
-.task-container {}
+.task-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
 .deleteAllTask {
     background-color: red;
@@ -149,12 +153,10 @@ button:active {
     transform-origin: 100% 100%;
 }
 
-/* Анимация биения */
 .like:hover {
     animation: heartbeat 0.8s infinite;
 }
 
-/* Эффект нажатия */
 .like:active {
     transform: scale(0.9);
 }
@@ -185,4 +187,8 @@ button:active {
 .like.active:after {
     content: "";
     background: rgb(255, 0, 0);
+}
+
+.comment {
+    height: 79px;
 }
