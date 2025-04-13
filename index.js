@@ -1,86 +1,105 @@
+const commentsContainer = document.querySelector('.commentContainer');
+const nameInput = document.getElementById('name');
+const commentInput = document.getElementById('commentInput');
+const dateInput = document.getElementById('date');
+const createCommentButton = document.getElementById('button');
 
-const createTaskInput = document.querySelector('.createTaskInput');
-const createTaskButton = document.querySelector('.createTaskButton');
-const taskContainer = document.querySelector('.task-container');
-const deleteAllTask = document.querySelector('.deleteAllTask');
-const getName = document.getElementById('getName');
+document.addEventListener('DOMContentLoaded', loadComments);
 
-const STORAGE_KEY = 'commentsData';
+createCommentButton.addEventListener('click', () => {
+    const userName = nameInput.value.trim();
+    const comment = commentInput.value.trim();
+    const nowDate = dateInput.value || new Date().toISOString().slice(0, 10);
 
-function getMskTime() {
-    const date = new Date();
-    return date.toLocaleTimeString('ru-RU', {
-        timeZone: 'Europe/Moscow',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-}
+    if (userName && comment) {
+        const formattedDate = formatDate(nowDate);
+        const commentEl = createCommentElement(userName, comment, formattedDate);
+        commentsContainer.appendChild(commentEl);
 
-// Функция для сохранения комментариев в localStorage
-function saveCommentsToStorage() {
-    const comments = [];
-    document.querySelectorAll('.comment').forEach(comment => {
-        comments.push({
-            username: comment.querySelector('.task').textContent.split(': ')[0],
-            content: comment.querySelector('.task').textContent.split(': ')[1],
-            time: comment.querySelector('.time').textContent,
-            isLiked: comment.querySelector('.like').classList.contains('active')
-        });
-    });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
-}
+        saveCommentToStorage({ userName, comment, nowDate: formattedDate });
 
-// Функция для загрузки комментариев из localStorage
-function loadCommentsFromStorage() {
-    const savedComments = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    savedComments.forEach(comment => {
-        createCommentElement(comment.username, comment.content, comment.time, comment.isLiked);
-    });
-}
-
-function createCommentElement(username, content, time, isLiked = false) {
-    const commentContainer = document.createElement('div');
-    commentContainer.classList.add('comment');
-
-    const taskElement = document.createElement('div');
-    taskElement.classList.add('task');
-    taskElement.textContent = `${username}: ${content}`;
-
-    const date = document.createElement('div');
-    date.classList.add('time');
-    date.textContent = time || getMskTime();
-
-    const like = document.createElement('div');
-    like.classList.add('like');
-    if (isLiked) like.classList.add('active');
-
-    like.addEventListener('click', () => {
-        like.classList.toggle('active');
-        saveCommentsToStorage();
-    });
-
-    commentContainer.append(taskElement, date, like);
-    taskContainer.append(commentContainer);
-}
-
-// Обработчик для кнопки создания комментария
-createTaskButton.addEventListener('click', () => {
-    const taskContent = createTaskInput.value.trim();
-    const username = getName.value.trim();
-
-    if (taskContent !== '' && username !== '') {
-        createCommentElement(username, taskContent);
-        saveCommentsToStorage();
-        createTaskInput.value = '';
-        getName.value = '';
+        commentInput.value = '';
+        dateInput.value = '';
+    } else {
+        alert('Заполните имя и комментарий.');
     }
 });
 
-deleteAllTask.addEventListener('click', () => {
-    taskContainer.innerHTML = '';
-    localStorage.removeItem(STORAGE_KEY);
-});
+function formatDate(dateString) {
+    const now = new Date();
+    const inputDate = new Date(dateString);
 
-document.addEventListener('DOMContentLoaded', loadCommentsFromStorage);
+    // Приводим к началу дня для сравнения
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const inputDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
 
+    // Форматируем время
+    const hours = String(inputDate.getHours()).padStart(2, '0');
+    const minutes = String(inputDate.getMinutes()).padStart(2, '0');
+    const time = `${hours}:${minutes}`;
+
+    // Сравниваем даты
+    if (inputDay.getTime() === today.getTime()) {
+        return `Сегодня, ${time}`;
+    } else if (inputDay.getTime() === yesterday.getTime()) {
+        return `Вчера, ${time}`;
+    } else {
+        // Формат dd.mm.yyyy
+        const day = String(inputDate.getDate()).padStart(2, '0');
+        const month = String(inputDate.getMonth() + 1).padStart(2, '0');
+        return `${day}.${month}.${inputDate.getFullYear()}`;
+    }
+}
+
+function createCommentElement(userName, comment, formattedDate) {
+    const commentEl = document.createElement('div');
+    commentEl.classList.add('comment');
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete';
+    deleteBtn.textContent = 'Удалить';
+
+    commentEl.innerHTML = `
+        <h2>${userName}</h2>
+        <p>${comment}</p>
+        <span>${formattedDate}</span>
+    `;
+
+    deleteBtn.addEventListener('click', () => {
+        commentEl.remove();
+        removeCommentFromStorage({ userName, comment, nowDate: formattedDate });
+    });
+
+    commentEl.appendChild(deleteBtn);
+    return commentEl;
+}
+
+function saveCommentToStorage(comment) {
+    const comments = JSON.parse(localStorage.getItem('comments') || '[]');
+    comments.push(comment);
+    localStorage.setItem('comments', JSON.stringify(comments));
+}
+
+function removeCommentFromStorage(commentToRemove) {
+    let comments = JSON.parse(localStorage.getItem('comments') || '[]');
+    comments = comments.filter(comment =>
+        comment.userName !== commentToRemove.userName ||
+        comment.comment !== commentToRemove.comment ||
+        comment.nowDate !== commentToRemove.nowDate
+    );
+    localStorage.setItem('comments', JSON.stringify(comments));
+}
+
+function loadComments() {
+    const comments = JSON.parse(localStorage.getItem('comments') || '[]');
+    comments.forEach(comment => {
+        const commentEl = createCommentElement(
+            comment.userName,
+            comment.comment,
+            comment.nowDate
+        );
+        commentsContainer.appendChild(commentEl);
+    });
+}
