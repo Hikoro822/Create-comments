@@ -20,9 +20,19 @@ createCommentButton.addEventListener('click', () => {
 
         commentInput.value = '';
         dateInput.value = '';
-    } else {
-        alert('Заполните имя и комментарий.');
     }
+    if (nameInput.value.trim() === '') {
+        nameInput.style.border = '1px solid red'
+    } else {
+        nameInput.style.border = '1px solid black'
+    }
+
+    if (commentInput.value.trim() === '') {
+        commentInput.style.border = '1px solid red'
+    } else {
+        commentInput.style.border = '1px solid black'
+    }
+
 });
 
 function formatDate(dateString) {
