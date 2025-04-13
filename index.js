@@ -29,24 +29,21 @@ function formatDate(dateString) {
     const now = new Date();
     const inputDate = new Date(dateString);
 
-    // Приводим к началу дня для сравнения
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     const inputDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
 
-    // Форматируем время
     const hours = String(inputDate.getHours()).padStart(2, '0');
     const minutes = String(inputDate.getMinutes()).padStart(2, '0');
     const time = `${hours}:${minutes}`;
 
-    // Сравниваем даты
+
     if (inputDay.getTime() === today.getTime()) {
         return `Сегодня, ${time}`;
     } else if (inputDay.getTime() === yesterday.getTime()) {
         return `Вчера, ${time}`;
     } else {
-        // Формат dd.mm.yyyy
         const day = String(inputDate.getDate()).padStart(2, '0');
         const month = String(inputDate.getMonth() + 1).padStart(2, '0');
         return `${day}.${month}.${inputDate.getFullYear()}`;
