@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', loadComments);
 createCommentButton.addEventListener('click', () => {
     const userName = nameInput.value.trim();
     const comment = commentInput.value.trim();
-    const nowDate = dateInput.value || new Date().toISOString().slice(0, 10);
+    const nowDate = dateInput.value || new Date().toISOString();
 
     if (userName && comment) {
         const formattedDate = formatDate(nowDate);
@@ -21,6 +21,7 @@ createCommentButton.addEventListener('click', () => {
         commentInput.value = '';
         dateInput.value = '';
     }
+
     if (nameInput.value.trim() === '') {
         nameInput.style.border = '1px solid red'
     } else {
@@ -32,6 +33,7 @@ createCommentButton.addEventListener('click', () => {
     } else {
         commentInput.style.border = '1px solid black'
     }
+
 
 });
 
@@ -56,7 +58,7 @@ function formatDate(dateString) {
     } else {
         const day = String(inputDate.getDate()).padStart(2, '0');
         const month = String(inputDate.getMonth() + 1).padStart(2, '0');
-        return `${day}.${month}.${inputDate.getFullYear()}`;
+        return `${day}.${month}.${inputDate.getFullYear()}, ${time}`;
     }
 }
 
