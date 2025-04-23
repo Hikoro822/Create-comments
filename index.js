@@ -134,7 +134,7 @@ const updateLike = (userName, commentText, date, like) => {
     const coments = JSON.parse(localStorage.getItem('comments') || [])
     const updateComments = coments.map(comment => {
         if (comment.userName === userName && comment.comment === commentText && comment.nowDate === date) {
-            return { ...comment, liked }
+            return { ...comment, like }
         }
         return comment
     })
