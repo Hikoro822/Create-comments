@@ -18,6 +18,7 @@ createCommentButton.addEventListener('click', () => {
 
         saveCommentToStorage({ userName, comment, nowDate: formattedDate });
 
+        nameInput.value = ''
         commentInput.value = '';
         dateInput.value = '';
     }
