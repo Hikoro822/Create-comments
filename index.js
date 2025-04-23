@@ -10,10 +10,16 @@ createCommentButton.addEventListener('click', () => {
     const userName = nameInput.value.trim();
     const comment = commentInput.value.trim();
     const nowDate = dateInput.value || new Date().toISOString();
+    const like = document.createElement('div');
+    like.className = 'like';
+    like.textContent = '❤️';
+    like.addEventListener('click', () => {
+        like.classList.toggle('active')
+    })
 
     if (userName && comment) {
         const formattedDate = formatDate(nowDate);
-        const commentEl = createCommentElement(userName, comment, formattedDate);
+        const commentEl = createCommentElement(userName, comment, formattedDate, like);
         commentsContainer.appendChild(commentEl);
 
         saveCommentToStorage({ userName, comment, nowDate: formattedDate });
@@ -22,7 +28,9 @@ createCommentButton.addEventListener('click', () => {
         commentInput.value = '';
         dateInput.value = '';
     }
+});
 
+const validateInput = () => {
     if (nameInput.value.trim() === '') {
         nameInput.style.border = '1px solid red'
     } else {
@@ -34,9 +42,15 @@ createCommentButton.addEventListener('click', () => {
     } else {
         commentInput.style.border = '1px solid black'
     }
+}
 
+document.addEventListener('DOMContentLoaded', () => {
+    loadComments()
+    validateInput()
+})
 
-});
+nameInput.addEventListener('input', validateInput)
+commentInput.addEventListener('input', validateInput)
 
 function formatDate(dateString) {
     const now = new Date();
@@ -63,9 +77,21 @@ function formatDate(dateString) {
     }
 }
 
-function createCommentElement(userName, comment, formattedDate) {
+function createCommentElement(userName, comment, formattedDate, liked = false) {
     const commentEl = document.createElement('div');
     commentEl.classList.add('comment');
+
+    const like = document.createElement('div');
+    like.className = 'like';
+    like.textContent = liked ? '❤️' : '🖤';
+    if (liked) like.classList.add('active');
+
+    like.addEventListener('click', () => {
+        const newLikedState = !like.classList.contains('active');
+        like.textContent = newLikedState ? '❤️' : '🖤';
+        like.classList.toggle('active');
+        updateLike(userName, comment, formattedDate, newLikedState);
+    });
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete';
@@ -77,18 +103,20 @@ function createCommentElement(userName, comment, formattedDate) {
         <span>${formattedDate}</span>
     `;
 
+    commentEl.appendChild(like);
+    commentEl.appendChild(deleteBtn);
+
     deleteBtn.addEventListener('click', () => {
         commentEl.remove();
         removeCommentFromStorage({ userName, comment, nowDate: formattedDate });
     });
 
-    commentEl.appendChild(deleteBtn);
     return commentEl;
 }
 
 function saveCommentToStorage(comment) {
     const comments = JSON.parse(localStorage.getItem('comments') || '[]');
-    comments.push(comment);
+    comments.push({ ...comment, liked: false });
     localStorage.setItem('comments', JSON.stringify(comments));
 }
 
@@ -102,13 +130,25 @@ function removeCommentFromStorage(commentToRemove) {
     localStorage.setItem('comments', JSON.stringify(comments));
 }
 
+const updateLike = (userName, commentText, date, like) => {
+    const coments = JSON.parse(localStorage.getItem('comments') || [])
+    const updateComments = coments.map(comment => {
+        if (comment.userName === userName && comment.comment === commentText && comment.nowDate === date) {
+            return { ...comment, liked }
+        }
+        return comment
+    })
+    localStorage.setItem('comments', JSON.stringify(updateComments))
+}
+
 function loadComments() {
     const comments = JSON.parse(localStorage.getItem('comments') || '[]');
     comments.forEach(comment => {
         const commentEl = createCommentElement(
             comment.userName,
             comment.comment,
-            comment.nowDate
+            comment.nowDate,
+            comment.like,
         );
         commentsContainer.appendChild(commentEl);
     });
